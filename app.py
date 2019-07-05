@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 import json
 import pandas as pd
@@ -58,11 +58,14 @@ def district_extractor():
 				element4 = WebDriverWait(driver, 10).until(EC.presence_of_element_located(
 					(By.XPATH, '//*[@id="ContentPlaceHolder1_ddlPanchayat"]')))
 				dropdown4 = Select(driver.find_element_by_xpath('//*[@id="ContentPlaceHolder1_ddlPanchayat"]'))
-				dropdown4.select_by_visible_text(panchayat)
-				element5 = WebDriverWait(driver, 20).until(EC.presence_of_element_located(
-					(By.XPATH, '//*[@id="ContentPlaceHolder1_btnSubmit"]')))
-				actions = ActionChains(driver)
-				actions.move_to_element(element5).click().perform()
+				try:
+					dropdown4.select_by_visible_text(panchayat)
+					element5 = WebDriverWait(driver, 20).until(EC.presence_of_element_located(
+						(By.XPATH, '//*[@id="ContentPlaceHolder1_btnSubmit"]')))
+					actions = ActionChains(driver)
+					actions.move_to_element(element5).click().perform()
+				except NoSuchElementException:
+					print('Not found')
 
 				try:
 					element6 = WebDriverWait(driver, 20).until(EC.presence_of_element_located(
@@ -96,10 +99,13 @@ def district_extractor():
 						                           'Sanction_No', 'Sanction_Amount', 'Installment_Paid',
 						                           'Amount_Released', 'House_Status'])
 
-						if not os.path.exists('data\{}'.format(block)):
-							os.makedirs('data\{}'.format(block))
+						path = os.path.normpath('data/{}/{}'.format(district, block))
+						if not os.path.exists(path):
+							try:
+								os.makedirs(path)
+							except OSError:
 
-						df.to_excel('data\{}\{}_{}.xlsx'.format(block, block, panchayat))
+						df.to_excel('{}/{}_{}.xlsx'.format(path, block, panchayat))
 
 				except TimeoutException as ex:
 					print('-----> Data not found')
