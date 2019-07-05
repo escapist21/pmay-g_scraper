@@ -103,9 +103,9 @@ def district_extractor():
 						if not os.path.exists(path):
 							try:
 								os.makedirs(path)
+								df.to_excel('{}/{}_{}.xlsx'.format(path, block, panchayat))
 							except OSError:
-
-						df.to_excel('{}/{}_{}.xlsx'.format(path, block, panchayat))
+								print('Could not create path')
 
 				except TimeoutException as ex:
 					print('-----> Data not found')
